@@ -1,93 +1,106 @@
 # OSDU Python Client
 
+This project is a Python client for [OSDU](https://osduforum.org/) services, automatically generated from OpenAPI specifications using [openapi-python-client](https://github.com/openapi-generators/openapi-python-client).
 
+It provides typed, async-ready clients for various OSDU services, allowing for easy integration with OSDU APIs in Python applications.
 
-## Getting started
+## Prerequisites
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
-```
-cd existing_repo
-git remote add origin https://community.opengroup.org/shjellvik/osdu-python-client.git
-git branch -M main
-git push -uf origin main
-```
-
-## Integrate with your tools
-
-* [Set up project integrations](https://community.opengroup.org/shjellvik/osdu-python-client/-/settings/integrations)
-
-## Collaborate with your team
-
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+- Python 3.13+
+- [uv](https://github.com/astral-sh/uv) (for dependency management and running scripts)
 
 ## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+
+This project is managed with `uv`. To install dependencies:
+
+```bash
+uv sync
+```
 
 ## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+Each OSDU service has its own sub-package under `osdu_python_client`.
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+### Example: Entitlements Service
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+```python
+from osdu_python_client.entitlements.client import AuthenticatedClient
+from osdu_python_client.entitlements.api.groups import list_groups
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+# Initialize the client
+client = AuthenticatedClient(
+    base_url="https://your-osdu-instance.com/api/entitlements/v2",
+    token="YOUR_ACCESS_TOKEN"
+)
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+# Call an API endpoint (synchronous)
+response = list_groups.sync(client=client, data_partition_id="your-partition-id")
+if response:
+    print(response.groups)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+# Call an API endpoint (asynchronous)
+import asyncio
+
+async def main():
+    response = await list_groups.asyncio(client=client, data_partition_id="your-partition-id")
+    if response:
+        print(response.groups)
+
+if __name__ == "__main__":
+    asyncio.run(main())
+```
+
+### Available Services
+
+The following services are currently generated:
+
+- `crs_catalog`
+- `crs_conversion`
+- `dataset`
+- `entitlements`
+- `file`
+- `indexer`
+- `ingestion_workflow_service`
+- `legal`
+- `notification`
+- `partition`
+- `policy`
+- `register`
+- `schema`
+- `search`
+- `storage`
+- `unit`
+
+## Development
+
+### Updating OpenAPI Specs
+
+To fetch the latest OpenAPI specifications from the OSDU wiki:
+
+```bash
+uv run python download.py
+```
+
+This script parses the OSDU wiki for service definitions and downloads the corresponding JSON specs into the `openapi_specs/` directory.
+
+### Regenerating Clients
+
+To regenerate the Python clients from the specifications in `openapi_specs/`:
+
+```bash
+uv run python generate_all.py
+```
+
+This command runs `generate_all.py`, which iterates through the JSON files and uses `openapi-python-client` to generate the code into `osdu_python_client/`. It also handles minor patching of specs (e.g., missing versions) to ensure successful generation.
+
+## Project Structure
+
+- `openapi_specs/`: Contains the downloaded OpenAPI JSON specifications.
+- `osdu_python_client/`: The generated Python package containing clients for each service.
+- `download.py`: Script to download specs.
+- `generate_all.py`: Script to generate the clients.
+- `pyproject.toml`: Project configuration and dependencies (managed by `uv`).
 
 ## License
-For open source projects, say how it is licensed.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+[License Information]

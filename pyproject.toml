@@ -23,7 +23,7 @@ dependencies = [
 ]
 
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools", "wheel", "openapi-python-client>=0.28.1"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]

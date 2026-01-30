@@ -103,4 +103,4 @@ This command runs `generate_all.py`, which iterates through the JSON files and u
 
 ## License
 
-[License Information]
+Ref. [License Information](LICENSE)

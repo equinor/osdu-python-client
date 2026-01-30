@@ -1,4 +1,5 @@
 import os
+import sys
 import subprocess
 from pathlib import Path
 
@@ -42,7 +43,7 @@ def generate_all():
         output_path.mkdir(parents=True)
 
         cmd = [
-            "uv", "run", "openapi-python-client", "generate",
+            sys.executable, "-m", "openapi_python_client", "generate",
             "--path", str(temp_spec_path),
             "--meta", "none",
             "--output-path", str(output_path),

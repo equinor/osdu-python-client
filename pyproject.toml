@@ -22,6 +22,14 @@ dependencies = [
     "ruff>=0.14.14",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.5",
+    "pytest-mock==3.14.0",
+    "pydantic-settings",
+    "msal",
+]
+
 [build-system]
 requires = ["setuptools", "wheel", "openapi-python-client>=0.28.1"]
 build-backend = "setuptools.build_meta"

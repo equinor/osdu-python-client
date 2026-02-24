@@ -5,7 +5,6 @@ from typing import Any
 import pytest
 from msal import PublicClientApplication
 
-from osdu_python_client.entitlements.client import AuthenticatedClient
 from tests.config import CoreConfig
 
 

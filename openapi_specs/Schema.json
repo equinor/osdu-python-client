@@ -65,7 +65,7 @@
           "200": {
             "description": "Schema updated",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SchemaInfo"
                 }
@@ -75,7 +75,7 @@
           "201": {
             "description": "Schema created",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/SchemaInfo"
                 }

@@ -75,7 +75,7 @@
           "200": {
             "description": "Retrieved LegalTags successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LegalTagDtos"
                 }
@@ -191,7 +191,7 @@
           "200": {
             "description": "Updated LegalTag successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LegalTagDto"
                 }
@@ -317,7 +317,7 @@
           "201": {
             "description": "Created LegalTag successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LegalTagDto"
                 }
@@ -445,7 +445,7 @@
           "200": {
             "description": "Retrieved LegalTag names with reason successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/InvalidTagsWithReason"
                 }
@@ -573,7 +573,7 @@
           "200": {
             "description": "Retrieved LegalTags successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LegalTagDtos"
                 }
@@ -701,7 +701,7 @@
           "200": {
             "description": "Retrieved LegalTags successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LegalTagDtos"
                 }
@@ -809,7 +809,7 @@
           "200": {
             "description": "Retrieved LegalTag properties successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReadablePropertyValues"
                 }
@@ -917,7 +917,7 @@
           "200": {
             "description": "Retrieved LegalTag successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LegalTagDto"
                 }

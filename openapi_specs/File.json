@@ -176,7 +176,7 @@
           "201": {
             "description": "Metadata created",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/FileMetadataResponse"
                 }
@@ -392,7 +392,7 @@
           "200": {
             "description": "A successful response",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/RecordVersion"
                 }
@@ -627,7 +627,7 @@
           "200": {
             "description": "A successful response",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DownloadUrlResponse"
                 }
@@ -745,7 +745,7 @@
           "200": {
             "description": "File location",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LocationResponse"
                 }

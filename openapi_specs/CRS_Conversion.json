@@ -202,7 +202,7 @@
           "200": {
             "description": "Conversion performed successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConvertGeoJsonResponse"
                 }
@@ -338,7 +338,7 @@
           "200": {
             "description": "Trajectory conversion performed successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConvertTrajectoryResponse"
                 }
@@ -436,7 +436,7 @@
           "200": {
             "description": "Conversion performed successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConvertGeoJsonResponse"
                 }
@@ -512,9 +512,9 @@
             }
           },
           "200": {
-            "description": "The response is essentially a measure of the computed “non-squareness” (dI,dJ) of the input BinGrid, and an output BinGrid which is essentially a copy of the input, but augmented with the derived P6 parameters filled out, and optionally (if a toCrs was given in the request) converted global coordinates that are “squared up” in the new geometry (which can be used in applications that require a square grid in a project CRS geometry; if the “squaring error” is small enough",
+            "description": "The response is essentially a measure of the computed \u201cnon-squareness\u201d (dI,dJ) of the input BinGrid, and an output BinGrid which is essentially a copy of the input, but augmented with the derived P6 parameters filled out, and optionally (if a toCrs was given in the request) converted global coordinates that are \u201csquared up\u201d in the new geometry (which can be used in applications that require a square grid in a project CRS geometry; if the \u201csquaring error\u201d is small enough",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConvertBinGridResponse"
                 }
@@ -650,7 +650,7 @@
           "200": {
             "description": "Trajectory conversion performed successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConvertTrajectoryResponse"
                 }
@@ -748,7 +748,7 @@
           "200": {
             "description": "Conversion performed successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ConvertGeoJsonResponse"
                 }

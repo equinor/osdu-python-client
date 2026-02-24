@@ -80,7 +80,7 @@
           "200": {
             "description": "Success",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CursorQueryResponse"
                 }
@@ -258,7 +258,7 @@
           "200": {
             "description": "Success",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/QueryResponse"
                 }
@@ -462,7 +462,7 @@
           "200": {
             "description": "Success",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CursorQueryResponse"
                 }

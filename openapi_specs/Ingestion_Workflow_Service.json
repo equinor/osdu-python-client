@@ -413,7 +413,7 @@
           "200": {
             "description": "List of all the workflows",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkflowMetadata"
                 }
@@ -539,7 +539,7 @@
           "200": {
             "description": "Workflow created | updated successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkflowMetadata"
                 }
@@ -938,7 +938,7 @@
           "200": {
             "description": "Workflow created | updated successfully",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/WorkflowMetadata"
                 }

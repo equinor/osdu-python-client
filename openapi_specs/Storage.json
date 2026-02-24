@@ -962,7 +962,7 @@
           "207": {
             "description": "Some of the records weren't deleted successfully.",
             "content": {
-              "*/*": {
+              "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DeleteRecordsException"
                 }

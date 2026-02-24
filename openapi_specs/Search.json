@@ -762,7 +762,6 @@
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
               }
             }
           },
@@ -794,7 +793,7 @@
         "type": "object",
         "properties": {
           "kind": {
-            "type": "object"
+            "type": "string"
           },
           "limit": {
             "minimum": 0,
@@ -861,7 +860,6 @@
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
               }
             }
           },

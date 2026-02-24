@@ -2,7 +2,7 @@
 
 This project is a Python client for [OSDU](https://osduforum.org/) services, automatically generated from OpenAPI specifications using [openapi-python-client](https://github.com/openapi-generators/openapi-python-client).
 
-It provides typed, async-ready clients for various OSDU services, allowing for easy integration with OSDU APIs in Python applications.
+It provides typed, async-ready clients for various OSDU core services, allowing for easy integration with OSDU APIs in Python applications.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ It provides typed, async-ready clients for various OSDU services, allowing for e
 This project is managed with `uv`. To install dependencies:
 
 ```bash
-uv sync
+uv sync --all-extras
 ```
 
 ## Usage

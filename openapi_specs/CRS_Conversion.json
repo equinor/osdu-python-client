@@ -1538,7 +1538,8 @@
             "$ref": "#/components/schemas/GeoJsonBase"
           },
           "properties": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {}
           }
         }
       },
@@ -1574,7 +1575,8 @@
             }
           },
           "properties": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": {}
           },
           "persistableReferenceCrs": {
             "type": "string"

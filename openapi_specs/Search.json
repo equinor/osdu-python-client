@@ -630,7 +630,7 @@
         "type": "object",
         "properties": {
           "kind": {
-            "type": "object"
+            "type": "string"
           },
           "limit": {
             "minimum": 0,

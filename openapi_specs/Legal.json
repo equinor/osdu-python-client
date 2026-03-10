@@ -1497,7 +1497,6 @@
           "extensionProperties": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             },
             "description": "The optional object field to attach any company specific attributes."
           }
@@ -1556,7 +1555,6 @@
           "extensionProperties": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             }
           }
         }

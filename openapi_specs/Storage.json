@@ -2527,7 +2527,6 @@
           "data": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             },
             "minProperties": 1
           },
@@ -2539,7 +2538,6 @@
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
               }
             }
           },
@@ -3148,7 +3146,6 @@
           "data": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             },
             "description": "Record data"
           },

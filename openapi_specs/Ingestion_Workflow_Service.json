@@ -1690,7 +1690,6 @@
           "registrationInstructions": {
             "type": "object",
             "additionalProperties": {
-              "type": "object",
               "description": "Workfow registration instructions which could contains:\n\nName of already registered Airflow DAG\nCotent of python DAG file\netc By default this is Airflow DAG named workflowName"
             },
             "description": "Workfow registration instructions which could contains:\n\nName of already registered Airflow DAG\nCotent of python DAG file\netc By default this is Airflow DAG named workflowName"
@@ -1711,7 +1710,6 @@
           "executionContext": {
             "type": "object",
             "additionalProperties": {
-              "type": "object",
               "description": "Map to configure workflow speciffic key value pairs"
             },
             "description": "Map to configure workflow speciffic key value pairs"

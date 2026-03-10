@@ -1299,7 +1299,6 @@
           "data": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             }
           },
           "ancestry": {
@@ -1310,7 +1309,6 @@
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
               }
             }
           },
@@ -1378,7 +1376,6 @@
           "storageLocation": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             }
           },
           "providerKey": {
@@ -1412,7 +1409,6 @@
           "retrievalProperties": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
             }
           },
           "providerKey": {

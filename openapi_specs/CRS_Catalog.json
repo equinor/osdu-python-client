@@ -4363,7 +4363,6 @@
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
               }
             }
           },
@@ -4381,7 +4380,6 @@
             "items": {
               "type": "object",
               "additionalProperties": {
-                "type": "object"
               }
             }
           },

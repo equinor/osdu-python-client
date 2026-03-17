@@ -630,7 +630,17 @@
         "type": "object",
         "properties": {
           "kind": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
           },
           "limit": {
             "minimum": 0,
@@ -793,7 +803,17 @@
         "type": "object",
         "properties": {
           "kind": {
-            "type": "string"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            ]
           },
           "limit": {
             "minimum": 0,

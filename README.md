@@ -126,6 +126,7 @@ The following services are currently generated:
 - `search`
 - `storage`
 - `unit`
+- `wellbore_ddms`
 
 ## Development
 
@@ -176,6 +177,26 @@ uv run python generate_all.py
 This command runs `generate_all.py`, which iterates through the JSON files and uses `openapi-python-client` to generate the code into `osdu_python_client/`. It also handles minor patching of specs (e.g., missing versions) to ensure successful generation.
 
 Warning: do not hand-edit files under `src/osdu_python_client/`. They are generated artifacts and your changes will be overwritten the next time `uv run python generate_all.py` is run. Make changes in `openapi_specs/` and/or the generation scripts instead.
+
+### Releasing
+
+GitHub Actions includes two workflows:
+
+- `.github/workflows/build.yml` runs on pushes and pull requests and verifies linting plus package build.
+- `.github/workflows/release.yml` runs only for tags matching `v*`, rebuilds the package, verifies the tag matches `project.version` in `pyproject.toml`, and creates a GitHub release with the built distributions attached.
+
+Release flow:
+
+1. Update `project.version` in `pyproject.toml`.
+2. Commit and push that change to the default branch.
+3. Create and push a matching version tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+If the tag does not match the version in `pyproject.toml`, the release workflow fails before publishing release artifacts.
 
 ## Project Structure
 

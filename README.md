@@ -1,5 +1,7 @@
 # OSDU Python Client
 
+[![SCM Compliance](https://scm-compliance-api.radix.equinor.com/repos/equinor/060070c2-8a92-457a-bf34-8c625391b777/badge)](https://developer.equinor.com/governance/scm-policy/)
+
 This project is a Python client for [OSDU](https://osduforum.org/) services, automatically generated from OpenAPI specifications using [openapi-python-client](https://github.com/openapi-generators/openapi-python-client).
 
 It provides typed, async-ready clients for various OSDU core services, allowing for easy integration with OSDU APIs in Python applications.
@@ -178,25 +180,15 @@ This command runs `generate_all.py`, which iterates through the JSON files and u
 
 Warning: do not hand-edit files under `src/osdu_python_client/`. They are generated artifacts and your changes will be overwritten the next time `uv run python generate_all.py` is run. Make changes in `openapi_specs/` and/or the generation scripts instead.
 
-### Releasing
+### Releasing a new version
 
-GitHub Actions includes two workflows:
+Releases are automated using [Release Please](https://github.com/googleapis/release-please).
 
-- `.github/workflows/build.yml` runs on pushes and pull requests and verifies linting plus package build.
-- `.github/workflows/release.yml` runs only for tags matching `v*`, rebuilds the package, verifies the tag matches `project.version` in `pyproject.toml`, and creates a GitHub release with the built distributions attached.
+**How it works:**
 
-Release flow:
-
-1. Update `project.version` in `pyproject.toml`.
-2. Commit and push that change to the default branch.
-3. Create and push a matching version tag:
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-If the tag does not match the version in `pyproject.toml`, the release workflow fails before publishing release artifacts.
+1. On merge to `main`, Release Please checks new commits since the last release using the [Conventional Commits](https://www.conventionalcommits.org/) format.
+2. When releasable changes are found, Release Please creates or updates a release pull request that bumps the version in [`pyproject.toml`](pyproject.toml) and updates [`CHANGELOG.md`](CHANGELOG.md).
+3. When the release pull request is merged, the release workflow creates a GitHub release and publishes the NuGet package.
 
 ## Project Structure
 

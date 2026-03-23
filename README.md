@@ -1,5 +1,7 @@
 # OSDU Python Client
 
+[![SCM Compliance](https://scm-compliance-api.radix.equinor.com/repos/equinor/060070c2-8a92-457a-bf34-8c625391b777/badge)](https://developer.equinor.com/governance/scm-policy/)
+
 This project is a Python client for [OSDU](https://osduforum.org/) services, automatically generated from OpenAPI specifications using [openapi-python-client](https://github.com/openapi-generators/openapi-python-client).
 
 It provides typed, async-ready clients for various OSDU core services, allowing for easy integration with OSDU APIs in Python applications.

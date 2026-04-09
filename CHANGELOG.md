@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/equinor/osdu-python-client/compare/v0.2.0...v0.2.1) (2026-04-09)
+
+
+### Dependencies
+
+* bump `cryptography` from 46.0.6 to 46.0.7 ([#15](https://github.com/equinor/osdu-python-client/issues/15)) ([312c6e3](https://github.com/equinor/osdu-python-client/commit/312c6e3341172db9bee528f18592d97163d47631))
+
 ## [0.2.0](https://github.com/equinor/osdu-python-client/compare/v0.1.0...v0.2.0) (2026-04-07)
 
 

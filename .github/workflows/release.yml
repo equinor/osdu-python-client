@@ -3,10 +3,17 @@ name: Release
 on:
   push:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to upload artifacts to (for example v0.3.0)
+        required: false
+        type: string
 
 jobs:
   release-please:
     name: Release Please
+    if: github.event_name == 'push'
     permissions:
       contents: write # Required to update changelog file
       pull-requests: write # Required to create release PRs
@@ -15,7 +22,7 @@ jobs:
   build-and-publish:
     name: Build and publish
     needs: release-please
-    if: needs.release-please.outputs.releases_created == 'true'
+    if: ${{ always() && (github.event_name == 'workflow_dispatch' || needs.release-please.outputs.releases_created == 'true') }}
     runs-on: ubuntu-latest
     permissions:
       contents: write # Required to upload assets to the GitHub Release
@@ -25,6 +32,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
+          ref: ${{ github.event.inputs.release_tag || github.ref }}
 
       - name: Setup uv
         uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
@@ -39,12 +47,18 @@ jobs:
       - name: Sync dependencies
         run: uv sync --all-extras --frozen
 
+      - name: Generate clients
+        run: uv run python generate_all.py
+
       - name: Build distributions
         run: uv build
 
       - name: Upload release
         run: |
-          gh release upload "$RELEASE_TAG" dist/* --clobber
+          RELEASE_TAG="${{ github.event.inputs.release_tag }}"
+          if [ -z "$RELEASE_TAG" ]; then
+            RELEASE_TAG=$(git describe --tags --abbrev=0)
+          fi
+          gh release upload "$RELEASE_TAG" dist/*
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ fromJSON(needs.release-please.outputs.path_tag_names)['.'] }}

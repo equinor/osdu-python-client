@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.1](https://github.com/equinor/osdu-python-client/compare/v0.3.0...v0.3.1) (2026-04-16)
+
+
+### Dependencies
+
+* bump `pytest` from 9.0.2 to 9.0.3 ([#23](https://github.com/equinor/osdu-python-client/issues/23)) ([2ff7979](https://github.com/equinor/osdu-python-client/commit/2ff79793f4054037b02f86d2d2b490bcf839020a))
+* bump `requests` from 2.33.0 to 2.33.1 ([#20](https://github.com/equinor/osdu-python-client/issues/20)) ([9dfa05c](https://github.com/equinor/osdu-python-client/commit/9dfa05c1a536c0a00fbcd1456c41db7aaddfd36c))
+* bump `ruff` from 0.15.8 to 0.15.9 ([#21](https://github.com/equinor/osdu-python-client/issues/21)) ([50a1a49](https://github.com/equinor/osdu-python-client/commit/50a1a49f4cb3dfd4cce6e316a458e7204397779f))
+
 ## [0.3.0](https://github.com/equinor/osdu-python-client/compare/v0.2.1...v0.3.0) (2026-04-09)
 
 

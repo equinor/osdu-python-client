@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.3.2](https://github.com/equinor/osdu-python-client/compare/v0.3.1...v0.3.2) (2026-04-20)
+
+
+### Dependencies
+
+* bump `equinor/ops-actions/.github/workflows/commitlint.yml` from 9.35.1 to 9.36.0 ([b5f4605](https://github.com/equinor/osdu-python-client/commit/b5f4605566b7ee9b260112eb522f2dc2e378044b))
+* bump `equinor/ops-actions/.github/workflows/release-please-manifest.yml` from 9.35.1 to 9.36.0 ([b5f4605](https://github.com/equinor/osdu-python-client/commit/b5f4605566b7ee9b260112eb522f2dc2e378044b))
+* bump `equinor/ops-actions/.github/workflows/zizmor-codeql.yml` from 9.35.1 to 9.36.0 ([b5f4605](https://github.com/equinor/osdu-python-client/commit/b5f4605566b7ee9b260112eb522f2dc2e378044b))
+* bump `msal` from 1.35.1 to 1.36.0 ([#27](https://github.com/equinor/osdu-python-client/issues/27)) ([bba230d](https://github.com/equinor/osdu-python-client/commit/bba230d82e52b91bd730437cd2989d90a5638050))
+* bump `ruff` from 0.15.9 to 0.15.10 ([#26](https://github.com/equinor/osdu-python-client/issues/26)) ([a93f6bb](https://github.com/equinor/osdu-python-client/commit/a93f6bb955027209c2ee6053781336ff58076509))
+* bump the github-actions group with 3 updates ([#25](https://github.com/equinor/osdu-python-client/issues/25)) ([b5f4605](https://github.com/equinor/osdu-python-client/commit/b5f4605566b7ee9b260112eb522f2dc2e378044b))
+
 ## [0.3.1](https://github.com/equinor/osdu-python-client/compare/v0.3.0...v0.3.1) (2026-04-16)
 
 

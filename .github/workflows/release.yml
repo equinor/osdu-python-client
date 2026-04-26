@@ -17,7 +17,7 @@ jobs:
     permissions:
       contents: write # Required to update changelog file
       pull-requests: write # Required to create release PRs
-    uses: equinor/ops-actions/.github/workflows/release-please-manifest.yml@6f3c4901194b286f11800f60fc034417e2c8480a # v9.36.0
+    uses: equinor/ops-actions/.github/workflows/release-please-manifest.yml@39749d0c32762076499120f881e963687374420c # v9.37.1
 
   build-and-publish:
     name: Build and publish
@@ -36,7 +36,7 @@ jobs:
           fetch-tags: true
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@cec208311dfd045dd5311c1add060b2062131d57 # v8.0.0
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
 

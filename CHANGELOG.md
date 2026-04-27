@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.3](https://github.com/equinor/osdu-python-client/compare/v0.3.2...v0.3.3) (2026-04-27)
+
+
+### Dependencies
+
+* bump `equinor/ops-actions` from 9.36.0 to 9.37.1 and `astral-sh/setup-uv` from 8.0.0 to 8.1.0 ([#32](https://github.com/equinor/osdu-python-client/issues/32)) ([f57f17c](https://github.com/equinor/osdu-python-client/commit/f57f17c3e423af7a6895a2ce9caca3c66826d264))
+* bump `python-dotenv` from 1.2.1 to 1.2.2 ([#29](https://github.com/equinor/osdu-python-client/issues/29)) ([31a55d9](https://github.com/equinor/osdu-python-client/commit/31a55d918de20c3c16691a4cc993a1c38cf20c62))
+* bump `ruff` from 0.15.10 to 0.15.11 ([#31](https://github.com/equinor/osdu-python-client/issues/31)) ([4cef65d](https://github.com/equinor/osdu-python-client/commit/4cef65dd6652f243d4c8f47636334b448691f6d3))
+
 ## [0.3.2](https://github.com/equinor/osdu-python-client/compare/v0.3.1...v0.3.2) (2026-04-20)
 
 

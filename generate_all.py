@@ -3,7 +3,7 @@ import subprocess
 from pathlib import Path
 
 SPECS_DIR = Path("openapi_specs")
-PACKAGE_DIR = Path("src/osdu_python_client")
+PACKAGE_DIR = Path("src/osdu_python_client/generated")
 
 def generate_all():
     PACKAGE_DIR.mkdir(parents=True, exist_ok=True)

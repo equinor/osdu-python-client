@@ -1,10 +1,10 @@
 import os
 import pytest
 
-from osdu_python_client.entitlements.api.list_group_on_behalf_of_api import (
+from osdu_python_client.generated.entitlements.api.list_group_on_behalf_of_api import (
     list_all_partition_groups,
 )
-from osdu_python_client.entitlements.client import AuthenticatedClient
+from osdu_python_client.generated.entitlements.client import AuthenticatedClient
 from tests.config import CoreConfig
 
 

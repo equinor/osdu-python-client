@@ -16,7 +16,9 @@ classifiers = [
 dependencies = [
     "attrs>=26.1.0",
     "httpx>=0.28.1",
+    "msal>=1.35.1",
     "openapi-python-client>=0.28.3",
+    "pydantic-settings>=2.13.1",
     "python-dateutil>=2.9.0.post0",
     "pyyaml>=6.0.3",
     "requests>=2.33.1",
@@ -26,10 +28,14 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest==9.0.3",
+    "pytest-asyncio>=0.24.0",
     "pytest-mock==3.15.1",
     "pydantic-settings==2.13.1",
     "msal==1.36.0",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
 
 [build-system]
 requires = ["setuptools", "wheel", "openapi-python-client>=0.28.1"]

@@ -6,9 +6,9 @@ dist/
 wheels/
 *.egg-info
 
-# Generated Client Code
-src/osdu_python_client/*
-!src/osdu_python_client/__init__.py
+# Generated Client Code (output of generate_all.py)
+src/osdu_python_client/generated/*/
+!src/osdu_python_client/generated/__init__.py
 
 # Virtual environments
 .venv

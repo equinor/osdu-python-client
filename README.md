@@ -32,7 +32,7 @@ uv sync --all-extras
 
 ## .env Setup
 
-Integration tests and local examples can load configuration from a `.env` file in the repository root (via Pydantic Settings in `tests/config.py`).
+`OsduClient` (and the legacy test fixtures) load configuration from a `.env` file in the repository root via Pydantic Settings.
 
 Create `.env` with the required values for your OSDU environment:
 
@@ -40,42 +40,131 @@ Create `.env` with the required values for your OSDU environment:
 # Base OSDU host (no trailing slash)
 server=https://your-osdu-instance.com
 
-# Required for authenticated test runs
+# Partition + auth
 data_partition_id=your-partition-id
 authority=https://login.microsoftonline.com/<tenant-id>
 scopes=api://<app-id-uri>/.default
 client_id=<public-client-id>
 
-# Optional endpoint overrides (defaults are defined in tests/config.py)
-# crs_catalog_endpoint=/api/crs/catalog/v2
-# crs_converter_endpoint=/api/crs/converter/v2
-# entitlements_endpoint=/api/entitlements/v2
-# file_endpoint=/api/file/v2
-# legal_endpoint=/api/legal/v1
-# schema_endpoint=/api/schema/v1/
+# Auth mode: interactive (default) | device_flow | client_credentials
+auth_mode=interactive
+# client_secret=<required only for client_credentials>
+
+# MSAL token cache (default: .msal_token_cache.bin)
+# msal_cache_path=.msal_token_cache.bin
+
+# Retry/timeout tuning
+# timeout_seconds=30
+# retry_attempts=3
+# retry_base_delay=0.5
+# verify_ssl=true
+
+# Optional endpoint overrides (defaults defined in src/osdu_python_client/config.py)
 # search_endpoint=/api/search/v2
 # storage_endpoint=/api/storage/v2
-# unit_endpoint=/api/unit/v3
-# workflow_endpoint=/api/workflow/v1
+# wellbore_ddms_endpoint=/api/os-wellbore-ddms
+# ...one per service
 ```
-
-Optional environment variables used by tests:
-
-- `OSDU_MSAL_CACHE_PATH`: Path to a persistent MSAL token cache file (default: `.msal_token_cache.bin` in repo root)
 
 ## Usage
 
-Each OSDU service has its own sub-package under `osdu_python_client`.
+Two layers are available:
 
-### Example: Entitlements Service
+1. **`osdu_python_client.OsduClient`** — recommended. A thin facade that handles auth (MSAL), partition headers, retries with exponential backoff and `Retry-After`, and a single shared connection pool across all services.
+2. **`osdu_python_client.generated.<service>.AuthenticatedClient`** — the raw generated clients. Use directly when you want to bring your own httpx setup.
+
+### Recommended: `OsduClient`
+
+```python
+from osdu_python_client import OsduClient
+from osdu_python_client.generated.search.api.search_api import query_records
+from osdu_python_client.generated.search.models.query_request import QueryRequest
+
+with OsduClient() as osdu:  # config loaded from .env
+    result = query_records.sync_detailed(
+        client=osdu.search,
+        body=QueryRequest(kind="osdu:wks:master-data--Wellbore:*", query="*", limit=1),
+        data_partition_id=osdu.config.data_partition_id,
+    )
+```
+
+`osdu.<service>` returns the generated `AuthenticatedClient` for that service, pre-wired with retry transport and `data-partition-id` defaulting. Available service properties: `crs_catalog`, `crs_conversion`, `dataset`, `entitlements`, `file`, `indexer`, `legal`, `notification`, `partition`, `policy`, `register`, `schema`, `search`, `storage`, `unit`, `wellbore_ddms`, `workflow`.
+
+### Async
+
+```python
+import asyncio
+from osdu_python_client import AsyncOsduClient
+from osdu_python_client.generated.search.api.search_api import query_records
+from osdu_python_client.generated.search.models.query_request import QueryRequest
+
+async def main():
+    async with AsyncOsduClient() as osdu:
+        result = await query_records.asyncio_detailed(
+            client=osdu.search,
+            body=QueryRequest(kind="osdu:wks:master-data--Wellbore:*", query="*", limit=1),
+            data_partition_id=osdu.config.data_partition_id,
+        )
+
+asyncio.run(main())
+```
+
+### Auth modes
+
+`OsduConfig.auth_mode` (env var `AUTH_MODE`) selects the MSAL flow. All three persist tokens to `msal_cache_path` (default `.msal_token_cache.bin`).
+
+| Mode                  | When to use            | Required config                            |
+|-----------------------|------------------------|--------------------------------------------|
+| `interactive`         | Local dev / tests      | `client_id`, `authority`, `scopes`         |
+| `device_flow`         | Headless ops scripts   | `client_id`, `authority`, `scopes`         |
+| `client_credentials`  | CI, service-to-service | + `client_secret`                          |
+
+```python
+# Interactive (default)
+osdu = OsduClient()
+
+# Client credentials — set AUTH_MODE=client_credentials and CLIENT_SECRET=... in env, or:
+from osdu_python_client import ClientCredentialsProvider, OsduConfig
+config = OsduConfig(auth_mode="client_credentials", client_secret="…")
+osdu = OsduClient(config=config, token_provider=ClientCredentialsProvider(config))
+
+# Bring your own provider — anything with .get_token(force_refresh: bool) -> str works
+class MyProvider:
+    def get_token(self, force_refresh: bool = False) -> str:
+        return "…"
+
+osdu = OsduClient(token_provider=MyProvider())
+```
+
+Tokens are injected per-request, so refresh after a 401 takes effect immediately. The transport retries 401 once with `force_refresh=True` and retries `429/502/503/504` with backoff honouring `Retry-After`.
+
+### Per-service header overrides
+
+Some endpoints accept extra headers (e.g. `frame-of-reference` on CRS). Use the `with_headers` context manager — it scopes mutations to one or all built service clients and restores them on exit.
+
+```python
+with osdu.with_headers(service="crs_conversion", **{"frame-of-reference": "units=SI"}):
+    convert_records.sync_detailed(client=osdu.crs_conversion, body=req,
+                                  data_partition_id=osdu.config.data_partition_id)
+
+# Or apply to every service client built so far (e.g. correlation IDs):
+with osdu.with_headers(**{"x-correlation-id": correlation_id}):
+    ...
+```
+
+The async client exposes the same helper as `async with osdu.with_headers(...)`.
+
+### Low-level: raw `AuthenticatedClient`
+
+The generated clients can also be used directly with a static token (no retry, no auto-refresh, no shared connection pool):
 
 ```python
 import asyncio
 
-from osdu_python_client.entitlements.api.list_group_on_behalf_of_api import (
+from osdu_python_client.generated.entitlements.api.list_group_on_behalf_of_api import (
     list_all_partition_groups,
 )
-from osdu_python_client.entitlements.client import AuthenticatedClient
+from osdu_python_client.generated.entitlements.client import AuthenticatedClient
 
 # Initialize the client
 client = AuthenticatedClient(
@@ -176,9 +265,9 @@ To regenerate the Python clients from the specifications in `openapi_specs/`:
 uv run python generate_all.py
 ```
 
-This command runs `generate_all.py`, which iterates through the JSON files and uses `openapi-python-client` to generate the code into `osdu_python_client/`. It also handles minor patching of specs (e.g., missing versions) to ensure successful generation.
+This command runs `generate_all.py`, which iterates through the JSON files and uses `openapi-python-client` to generate the code into `src/osdu_python_client/generated/`. It also handles minor patching of specs (e.g., missing versions) to ensure successful generation.
 
-Warning: do not hand-edit files under `src/osdu_python_client/`. They are generated artifacts and your changes will be overwritten the next time `uv run python generate_all.py` is run. Make changes in `openapi_specs/` and/or the generation scripts instead.
+Warning: do not hand-edit files under `src/osdu_python_client/generated/`. They are generated artifacts and your changes will be overwritten the next time `uv run python generate_all.py` is run. Make changes in `openapi_specs/` and/or the generation scripts instead.
 
 ### Releasing a new version
 
@@ -194,7 +283,7 @@ Releases are automated using [Release Please](https://github.com/googleapis/rele
 
 - `openapi_specs/`: Contains the downloaded OpenAPI JSON specifications.
 - `fix_openapi_json_response_media_types.py`: Helper script to normalize `*/*` response media types to `application/json` for structured JSON responses in specs.
-- `src/osdu_python_client/`: The generated Python package containing clients for each service.
+- `src/osdu_python_client/`: Public package — handwritten facade (`OsduClient`, config, transport, auth, services wrappers) at the top level, plus a `generated/` subpackage produced by `generate_all.py`. Do not hand-edit files under `src/osdu_python_client/generated/`.
 - `download.py`: Script to download specs.
 - `generate_all.py`: Script to generate the clients.
 - `pyproject.toml`: Project configuration and dependencies (managed by `uv`).

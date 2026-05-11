@@ -1,53 +1,29 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
-from typing import TYPE_CHECKING, Any, AsyncIterator
-
-if TYPE_CHECKING:
-    from osdu_python_client.services.search import AsyncSearchService
+from typing import Any, AsyncIterator
 
 import httpx
 
 from osdu_python_client.auth import TokenProvider, provider_for
 from osdu_python_client.config import OsduConfig
 from osdu_python_client.hooks import async_partition_hook
+from osdu_python_client.services.facade import ServiceFacade
 from osdu_python_client.services.registry import (
     SERVICE_BY_ATTR,
     ServiceSpec,
-    import_target,
     load_authenticated_client,
 )
 from osdu_python_client.transport import AsyncRetryTransport
 
 
 class AsyncOsduClient:
-    if TYPE_CHECKING:
-        # Type hints for IDE / static-analysis support. Runtime resolution is
-        # registry-driven via ``__getattr__``; see ``SERVICE_REGISTRY``.
-        search: "AsyncSearchService"
-        storage: Any
-        schema: Any
-        entitlements: Any
-        legal: Any
-        file: Any
-        dataset: Any
-        indexer: Any
-        notification: Any
-        partition: Any
-        policy: Any
-        register: Any
-        unit: Any
-        crs_catalog: Any
-        crs_conversion: Any
-        wellbore_ddms: Any
-        workflow: Any
-
     def __init__(
         self,
         config: OsduConfig | None = None,
         token_provider: TokenProvider | None = None,
     ) -> None:
-        self._services: dict[str, Any] = {}
+        self._services: dict[str, ServiceFacade] = {}
         self._httpx_clients: dict[str, httpx.AsyncClient] = {}
         self.config = config or OsduConfig()
         self._provider = token_provider or provider_for(self.config)
@@ -57,7 +33,9 @@ class AsyncOsduClient:
             base_delay=self.config.retry_base_delay,
         )
 
-    def _build(self, name: str, base_url: str, auth_cls: type) -> Any:
+    def _build_service(self, spec: ServiceSpec) -> ServiceFacade:
+        auth_cls = load_authenticated_client(spec)
+        base_url = self.config.url_for(spec.attr)
         timeout = httpx.Timeout(self.config.timeout_seconds)
         httpx_client = httpx.AsyncClient(
             base_url=base_url,
@@ -68,19 +46,12 @@ class AsyncOsduClient:
                 "request": [async_partition_hook(self.config.data_partition_id)]
             },
         )
-        self._httpx_clients[name] = httpx_client
-        client = auth_cls(base_url=base_url, token="")
-        client.set_async_httpx_client(httpx_client)
-        return client
-
-    def _build_service(self, spec: ServiceSpec) -> Any:
-        auth_cls = load_authenticated_client(spec)
-        base_url = getattr(self.config, spec.config_url_attr)
-        client = self._build(spec.attr, base_url, auth_cls)
-        if spec.async_wrapper:
-            wrapper_cls = import_target(spec.async_wrapper)
-            client = wrapper_cls(client, self.config.data_partition_id)
-        return client
+        self._httpx_clients[spec.attr] = httpx_client
+        auth_client = auth_cls(base_url=base_url, token="")
+        auth_client.set_async_httpx_client(httpx_client)
+        return ServiceFacade(
+            spec.module, auth_client, self.config.data_partition_id, is_async=True
+        )
 
     def __getattr__(self, name: str) -> Any:
         if name.startswith("_"):
@@ -96,9 +67,12 @@ class AsyncOsduClient:
         cached = services.get(name)
         if cached is not None:
             return cached
-        client = self._build_service(spec)
-        services[name] = client
-        return client
+        facade = self._build_service(spec)
+        services[name] = facade
+        return facade
+
+    def __dir__(self) -> list[str]:
+        return sorted({*super().__dir__(), *SERVICE_BY_ATTR})
 
     @asynccontextmanager
     async def with_headers(

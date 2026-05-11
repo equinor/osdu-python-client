@@ -59,52 +59,55 @@ auth_mode=interactive
 # retry_base_delay=0.5
 # verify_ssl=true
 
-# Optional endpoint overrides (defaults defined in src/osdu_python_client/config.py)
-# search_endpoint=/api/search/v2
-# storage_endpoint=/api/storage/v2
-# wellbore_ddms_endpoint=/api/os-wellbore-ddms
-# ...one per service
+# Optional endpoint overrides (defaults defined in src/osdu_python_client/services/registry.py)
+# endpoint_overrides='{"search": "/api/search/v3", "wellbore_ddms": "/api/os-wellbore-ddms-staging"}'
 ```
 
 ## Usage
 
 Two layers are available:
 
-1. **`osdu_python_client.OsduClient`** — recommended. A thin facade that handles auth (MSAL), partition headers, retries with exponential backoff and `Retry-After`, and a single shared connection pool across all services.
+1. **`osdu_python_client.OsduClient`** — recommended. A facade that handles auth (MSAL), partition headers, retries with exponential backoff and `Retry-After`, a shared connection pool across all services, and ergonomic per-operation method dispatch.
 2. **`osdu_python_client.generated.<service>.AuthenticatedClient`** — the raw generated clients. Use directly when you want to bring your own httpx setup.
 
 ### Recommended: `OsduClient`
 
 ```python
 from osdu_python_client import OsduClient
-from osdu_python_client.generated.search.api.search_api import query_records
 from osdu_python_client.generated.search.models.query_request import QueryRequest
 
 with OsduClient() as osdu:  # config loaded from .env
-    result = query_records.sync_detailed(
-        client=osdu.search,
-        body=QueryRequest(kind="osdu:wks:master-data--Wellbore:*", query="*", limit=1),
-        data_partition_id=osdu.config.data_partition_id,
+    dto = osdu.search.query_records(
+        body=QueryRequest(kind="osdu:wks:master-data--Wellbore:*", query="*", limit=1)
     )
+    for record in dto.results:
+        print(record.additional_properties)
 ```
 
-`osdu.<service>` returns the generated `AuthenticatedClient` for that service, pre-wired with retry transport and `data-partition-id` defaulting. Available service properties: `crs_catalog`, `crs_conversion`, `dataset`, `entitlements`, `file`, `indexer`, `legal`, `notification`, `partition`, `policy`, `register`, `schema`, `search`, `storage`, `unit`, `wellbore_ddms`, `workflow`.
+Each `osdu.<service>.<operation>(...)` call auto-binds the underlying client and `data-partition-id`, returns the parsed response model on 2xx, and raises `OsduError` on non-2xx. Available services: `crs_catalog`, `crs_conversion`, `dataset`, `entitlements`, `file`, `indexer`, `legal`, `notification`, `partition`, `policy`, `register`, `schema`, `search`, `storage`, `unit`, `wellbore_ddms`, `workflow`.
+
+If you need the full `Response` envelope (status code, headers, raw parsed error model), call `.detailed`:
+
+```python
+result = osdu.search.query_records.detailed(body=request)
+print(result.status_code, result.headers)
+```
+
+`osdu.<service>.raw` is the underlying `AuthenticatedClient` if you ever need it.
 
 ### Async
 
 ```python
 import asyncio
 from osdu_python_client import AsyncOsduClient
-from osdu_python_client.generated.search.api.search_api import query_records
 from osdu_python_client.generated.search.models.query_request import QueryRequest
 
 async def main():
     async with AsyncOsduClient() as osdu:
-        result = await query_records.asyncio_detailed(
-            client=osdu.search,
-            body=QueryRequest(kind="osdu:wks:master-data--Wellbore:*", query="*", limit=1),
-            data_partition_id=osdu.config.data_partition_id,
+        dto = await osdu.search.query_records(
+            body=QueryRequest(kind="osdu:wks:master-data--Wellbore:*", query="*", limit=1)
         )
+        return dto.results
 
 asyncio.run(main())
 ```
@@ -268,6 +271,12 @@ uv run python generate_all.py
 This command runs `generate_all.py`, which iterates through the JSON files and uses `openapi-python-client` to generate the code into `src/osdu_python_client/generated/`. It also handles minor patching of specs (e.g., missing versions) to ensure successful generation.
 
 Warning: do not hand-edit files under `src/osdu_python_client/generated/`. They are generated artifacts and your changes will be overwritten the next time `uv run python generate_all.py` is run. Make changes in `openapi_specs/` and/or the generation scripts instead.
+
+### Adding a new service
+
+1. Drop the OpenAPI JSON spec into `openapi_specs/`.
+2. Run `uv run python generate_all.py`.
+3. Add one line to `SERVICE_REGISTRY` in [`src/osdu_python_client/services/registry.py`](src/osdu_python_client/services/registry.py) declaring the facade attribute name and the default endpoint path. The new operations become callable as `osdu.<attr>.<operation_id>(...)` automatically — no per-service wrapper code.
 
 ### Releasing a new version
 

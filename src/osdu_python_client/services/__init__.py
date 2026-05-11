@@ -1,3 +1,3 @@
-from osdu_python_client.services.search import AsyncSearchService, SearchService
+from osdu_python_client.services.facade import Endpoint, ServiceFacade
 
-__all__ = ["AsyncSearchService", "SearchService"]
+__all__ = ["Endpoint", "ServiceFacade"]

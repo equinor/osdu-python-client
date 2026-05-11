@@ -1,3 +1,7 @@
+.idea
+.msal_token_cache.bin
+.env
+
 # Python-generated files
 __pycache__/
 *.py[oc]

@@ -2,71 +2,46 @@ from __future__ import annotations
 
 import importlib
 from dataclasses import dataclass
-from typing import Any
 
 
 @dataclass(frozen=True)
 class ServiceSpec:
-    """Single source of truth wiring a facade attribute to a generated client.
+    """Declares how a generated package is exposed on the facade.
 
-    - ``attr``: property name exposed on ``OsduClient`` / ``AsyncOsduClient``
-      (e.g. ``"search"``, ``"workflow"``).
-    - ``module``: the generated package path, e.g. ``"osdu_python_client.generated.search"``.
-      ``<module>.client.AuthenticatedClient`` is imported on first access.
-    - ``config_url_attr``: attribute on ``OsduConfig`` returning the base URL,
-      e.g. ``"search_url"``.
-    - ``sync_wrapper`` / ``async_wrapper``: optional ``"pkg.module:ClassName"``
-      targets for ergonomic wrappers around the raw ``AuthenticatedClient``.
-      The wrapper is invoked as ``Wrapper(generated_client, data_partition_id)``.
+    - ``attr``: property name on ``OsduClient`` / ``AsyncOsduClient`` and the
+      key used in ``OsduConfig.endpoint_overrides``.
+    - ``module``: generated package path; ``<module>.client.AuthenticatedClient``
+      is imported lazily.
+    - ``endpoint``: default base path appended to ``OsduConfig.server`` to form
+      the service URL. Overridable via ``endpoint_overrides``.
     """
 
     attr: str
     module: str
-    config_url_attr: str
-    sync_wrapper: str | None = None
-    async_wrapper: str | None = None
+    endpoint: str
 
 
 SERVICE_REGISTRY: tuple[ServiceSpec, ...] = (
-    ServiceSpec(
-        "search",
-        "osdu_python_client.generated.search",
-        "search_url",
-        sync_wrapper="osdu_python_client.services.search:SearchService",
-        async_wrapper="osdu_python_client.services.search:AsyncSearchService",
-    ),
-    ServiceSpec("storage", "osdu_python_client.generated.storage", "storage_url"),
-    ServiceSpec("schema", "osdu_python_client.generated.schema", "schema_url"),
-    ServiceSpec("entitlements", "osdu_python_client.generated.entitlements", "entitlements_url"),
-    ServiceSpec("legal", "osdu_python_client.generated.legal", "legal_url"),
-    ServiceSpec("file", "osdu_python_client.generated.file", "file_url"),
-    ServiceSpec("dataset", "osdu_python_client.generated.dataset", "dataset_url"),
-    ServiceSpec("indexer", "osdu_python_client.generated.indexer", "indexer_url"),
-    ServiceSpec("notification", "osdu_python_client.generated.notification", "notification_url"),
-    ServiceSpec("partition", "osdu_python_client.generated.partition", "partition_url"),
-    ServiceSpec("policy", "osdu_python_client.generated.policy", "policy_url"),
-    ServiceSpec("register", "osdu_python_client.generated.register", "register_url"),
-    ServiceSpec("unit", "osdu_python_client.generated.unit", "unit_url"),
-    ServiceSpec("crs_catalog", "osdu_python_client.generated.crs_catalog", "crs_catalog_url"),
-    ServiceSpec(
-        "crs_conversion", "osdu_python_client.generated.crs_conversion", "crs_converter_url"
-    ),
-    ServiceSpec("wellbore_ddms", "osdu_python_client.generated.wellbore_ddms", "wellbore_ddms_url"),
-    ServiceSpec(
-        "workflow", "osdu_python_client.generated.ingestion_workflow_service", "workflow_url"
-    ),
+    ServiceSpec("search", "osdu_python_client.generated.search", "/api/search/v2"),
+    ServiceSpec("storage", "osdu_python_client.generated.storage", "/api/storage/v2"),
+    ServiceSpec("schema", "osdu_python_client.generated.schema", "/api/schema-service/v1"),
+    ServiceSpec("entitlements", "osdu_python_client.generated.entitlements", "/api/entitlements/v2"),
+    ServiceSpec("legal", "osdu_python_client.generated.legal", "/api/legal/v1"),
+    ServiceSpec("file", "osdu_python_client.generated.file", "/api/file/v2"),
+    ServiceSpec("dataset", "osdu_python_client.generated.dataset", "/api/dataset/v1"),
+    ServiceSpec("indexer", "osdu_python_client.generated.indexer", "/api/indexer/v2"),
+    ServiceSpec("notification", "osdu_python_client.generated.notification", "/api/notification/v1"),
+    ServiceSpec("partition", "osdu_python_client.generated.partition", "/api/partition/v1"),
+    ServiceSpec("policy", "osdu_python_client.generated.policy", "/api/policy/v1"),
+    ServiceSpec("register", "osdu_python_client.generated.register", "/api/register/v1"),
+    ServiceSpec("unit", "osdu_python_client.generated.unit", "/api/unit/v3"),
+    ServiceSpec("crs_catalog", "osdu_python_client.generated.crs_catalog", "/api/crs/catalog/v2"),
+    ServiceSpec("crs_conversion", "osdu_python_client.generated.crs_conversion", "/api/crs/converter/v2"),
+    ServiceSpec("wellbore_ddms", "osdu_python_client.generated.wellbore_ddms", "/api/os-wellbore-ddms"),
+    ServiceSpec("workflow", "osdu_python_client.generated.ingestion_workflow_service", "/api/workflow/v1"),
 )
 
 SERVICE_BY_ATTR: dict[str, ServiceSpec] = {s.attr: s for s in SERVICE_REGISTRY}
-
-
-def import_target(target: str) -> Any:
-    module_path, _, qualname = target.partition(":")
-    obj: Any = importlib.import_module(module_path)
-    if qualname:
-        for part in qualname.split("."):
-            obj = getattr(obj, part)
-    return obj
 
 
 def load_authenticated_client(spec: ServiceSpec) -> type:

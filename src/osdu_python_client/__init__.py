@@ -13,6 +13,7 @@ from osdu_python_client.errors import (
     OsduError,
     OsduRetryExhausted,
 )
+from osdu_python_client.logging_setup import enable_debug_logging
 
 __all__ = [
     "AsyncOsduClient",
@@ -26,4 +27,5 @@ __all__ = [
     "OsduError",
     "OsduRetryExhausted",
     "TokenProvider",
+    "enable_debug_logging",
 ]

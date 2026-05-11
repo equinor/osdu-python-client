@@ -141,6 +141,40 @@ osdu = OsduClient(token_provider=MyProvider())
 
 Tokens are injected per-request, so refresh after a 401 takes effect immediately. The transport retries 401 once with `force_refresh=True` and retries `429/502/503/504` with backoff honouring `Retry-After`.
 
+### Debugging
+
+The library logs through Python's standard `logging` module. Loggers used:
+
+| Logger                                       | Level   | What it emits                                                |
+|----------------------------------------------|---------|--------------------------------------------------------------|
+| `osdu_python_client.transport`               | DEBUG   | every request/response with method, URL, status, timing      |
+| `osdu_python_client.transport`               | INFO    | retry decisions, 401 → token refresh                         |
+| `osdu_python_client.transport`               | WARNING | retries exhausted                                            |
+| `osdu_python_client.transport.body`          | DEBUG   | request/response bodies (truncated to ~2KB)                  |
+| `osdu_python_client.auth`                    | DEBUG   | token acquisition (cache hit / fresh, never the token value) |
+
+`Authorization`, `Cookie`, `Set-Cookie`, and `Proxy-Authorization` headers are redacted from log output. Bodies are off by default (gated on a separate child logger) because OSDU payloads often contain PII.
+
+For a quick one-call setup:
+
+```python
+from osdu_python_client import enable_debug_logging
+enable_debug_logging()                          # transport + auth at DEBUG, bodies stay off
+enable_debug_logging(include_bodies=True)       # also log truncated bodies
+```
+
+Production consumers should skip the helper and configure handlers/formatters via `logging.config` directly.
+
+For wire-level visibility below the library, also raise `httpx` / `httpcore`:
+
+```python
+import logging
+logging.getLogger("httpx").setLevel(logging.DEBUG)
+logging.getLogger("httpcore").setLevel(logging.DEBUG)
+```
+
+For custom per-request observation (tracing, metrics), attach event hooks on the underlying httpx client: `osdu.<service>.get_httpx_client().event_hooks["request"].append(...)`.
+
 ### Per-service header overrides
 
 Some endpoints accept extra headers (e.g. `frame-of-reference` on CRS). Use the `with_headers` context manager — it scopes mutations to one or all built service clients and restores them on exit.

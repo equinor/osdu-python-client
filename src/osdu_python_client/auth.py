@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import logging
 import pathlib
 import threading
 from typing import Any, Protocol, runtime_checkable
 
 from osdu_python_client.config import OsduConfig
 from osdu_python_client.errors import OsduAuthError, OsduConfigError
+
+log = logging.getLogger(__name__)
 
 
 @runtime_checkable
@@ -71,10 +74,14 @@ class MsalInteractiveProvider(_MsalProviderBase):
     def get_token(self, force_refresh: bool = False) -> str:
         with self._lock:
             result = self._try_silent(force_refresh=force_refresh)
-            if not result or "access_token" not in result:
+            if result and "access_token" in result:
+                log.debug("token acquired silently (force_refresh=%s)", force_refresh)
+            else:
+                log.info("interactive auth flow required")
                 result = self._app.acquire_token_interactive(
                     scopes=self._config.scopes_list
                 )
+                log.debug("token acquired via interactive flow")
             self._persist()
             return self._extract_token(result)
 
@@ -100,12 +107,16 @@ class MsalDeviceFlowProvider(_MsalProviderBase):
     def get_token(self, force_refresh: bool = False) -> str:
         with self._lock:
             result = self._try_silent(force_refresh=force_refresh)
-            if not result or "access_token" not in result:
+            if result and "access_token" in result:
+                log.debug("token acquired silently (force_refresh=%s)", force_refresh)
+            else:
                 flow = self._app.initiate_device_flow(scopes=self._config.scopes_list)
                 if "user_code" not in flow:
                     raise OsduAuthError(f"Device flow init failed: {flow}")
+                log.info("device flow initiated — awaiting user code entry")
                 self._prompt_callback(flow)
                 result = self._app.acquire_token_by_device_flow(flow)
+                log.debug("token acquired via device flow")
             self._persist()
             return self._extract_token(result)
 
@@ -135,7 +146,10 @@ class ClientCredentialsProvider(_MsalProviderBase):
                 result = self._app.acquire_token_silent(
                     scopes=self._config.scopes_list, account=None
                 )
-            if not result or "access_token" not in result:
+            if result and "access_token" in result:
+                log.debug("client_credentials token acquired silently")
+            else:
+                log.debug("client_credentials acquiring new token (force_refresh=%s)", force_refresh)
                 result = self._app.acquire_token_for_client(
                     scopes=self._config.scopes_list
                 )

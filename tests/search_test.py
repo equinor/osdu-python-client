@@ -1,7 +1,8 @@
 import os
 
-from osdu_python_client import OsduClient
+from osdu_python_client import OsduClient, enable_debug_logging
 from osdu_python_client.generated.search.models.query_request import QueryRequest
+
 
 
 def test_search_query_records(osdu: OsduClient):
@@ -21,6 +22,8 @@ def test_search_query_records(osdu: OsduClient):
 
 
 def test_search_wellbores_for_given_field(osdu: OsduClient):
+    enable_debug_logging(include_bodies=True)
+
     field = osdu.search.query_records(
         body=QueryRequest(
             kind="osdu:wks:master-data--Field:*",

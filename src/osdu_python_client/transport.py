@@ -122,6 +122,8 @@ class RetryTransport(httpx.BaseTransport):
             if response.status_code in self._retry_statuses:
                 last_response = response
                 if attempt == self._max_attempts - 1:
+                    response.read()
+                    _log_response_body(response)
                     log.warning(
                         "retries exhausted after %d attempts, last status %d for %s",
                         self._max_attempts, response.status_code, request.url,
@@ -138,6 +140,9 @@ class RetryTransport(httpx.BaseTransport):
                 self._sleep(delay)
                 continue
 
+            if body_log.isEnabledFor(logging.DEBUG):
+                response.read()
+                _log_response_body(response)
             return response
 
         if last_response is not None:
@@ -206,6 +211,8 @@ class AsyncRetryTransport(httpx.AsyncBaseTransport):
             if response.status_code in self._retry_statuses:
                 last_response = response
                 if attempt == self._max_attempts - 1:
+                    await response.aread()
+                    _log_response_body(response)
                     log.warning(
                         "retries exhausted after %d attempts, last status %d for %s",
                         self._max_attempts, response.status_code, request.url,
@@ -222,6 +229,9 @@ class AsyncRetryTransport(httpx.AsyncBaseTransport):
                 await asyncio.sleep(delay)
                 continue
 
+            if body_log.isEnabledFor(logging.DEBUG):
+                await response.aread()
+                _log_response_body(response)
             return response
 
         if last_response is not None:

@@ -177,6 +177,34 @@ def test_enable_debug_logging_flips_levels():
                 lib.removeHandler(h)
 
 
+def test_successful_response_body_is_logged_when_body_logger_enabled(
+    caplog: pytest.LogCaptureFixture,
+):
+    def handler(_: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"results": [], "totalCount": 0})
+
+    provider = FakeProvider(["t"])
+    transport = RetryTransport(
+        provider, inner=_mock(handler), sleep=lambda _: None, max_attempts=3
+    )
+    client = httpx.Client(transport=transport, base_url="https://x")
+
+    caplog.set_level(logging.DEBUG, logger="osdu_python_client")
+    logging.getLogger("osdu_python_client.transport.body").setLevel(logging.DEBUG)
+    try:
+        client.get("/")
+    finally:
+        logging.getLogger("osdu_python_client.transport.body").setLevel(logging.WARNING)
+
+    body_messages = [
+        r.getMessage() for r in caplog.records
+        if r.name == "osdu_python_client.transport.body"
+        and r.getMessage().startswith("←")
+    ]
+    assert body_messages, "expected response body to be logged on 2xx"
+    assert "totalCount" in body_messages[0]
+
+
 def test_body_logger_off_by_default(caplog: pytest.LogCaptureFixture):
     """With only the parent logger at DEBUG (no include_bodies), bodies must
     stay out of the log stream — the body logger has its own level set."""

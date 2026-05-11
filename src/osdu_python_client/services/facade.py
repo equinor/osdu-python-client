@@ -9,14 +9,29 @@ from typing import Any
 from osdu_python_client.errors import OsduError
 
 
+_ERROR_BODY_MAX = 1024
+
+
 def _unwrap(response: Any) -> Any:
     status = response.status_code
     code = status.value if hasattr(status, "value") else int(status)
     if 200 <= code < 300:
         return response.parsed
-    raise OsduError(
-        f"Request failed: status={code} detail={response.parsed!r}"
-    )
+    detail: Any = response.parsed
+    if detail is None:
+        content = getattr(response, "content", None)
+        if content:
+            text = (
+                content.decode("utf-8", errors="replace")
+                if isinstance(content, bytes)
+                else str(content)
+            )
+            detail = (
+                text
+                if len(text) <= _ERROR_BODY_MAX
+                else f"{text[:_ERROR_BODY_MAX]}... [truncated]"
+            )
+    raise OsduError(f"Request failed: status={code} detail={detail!r}")
 
 
 class Endpoint:

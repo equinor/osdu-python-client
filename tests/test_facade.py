@@ -75,6 +75,18 @@ def test_endpoint_default_call_raises_on_non_2xx():
         ep(body="REQ")
 
 
+def test_unwrap_falls_back_to_response_content_when_parsed_is_none():
+    response = SimpleNamespace(
+        status_code=401,
+        parsed=None,
+        content=b'{"code":401,"reason":"Unauthorized","message":"token expired"}',
+    )
+    mod, _ = _fake_op(sync_response=response)
+    ep = Endpoint(mod, client="C", partition="P", is_async=False)
+    with pytest.raises(OsduError, match="token expired"):
+        ep(body="REQ")
+
+
 def test_endpoint_detailed_returns_envelope():
     response = _fake_response(500, parsed={"error": "boom"})
     mod, _ = _fake_op(sync_response=response)

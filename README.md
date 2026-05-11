@@ -112,34 +112,49 @@ async def main():
 asyncio.run(main())
 ```
 
-### Auth modes
+### Auth providers
 
-`OsduConfig.auth_mode` (env var `AUTH_MODE`) selects the MSAL flow. All three persist tokens to `msal_cache_path` (default `.msal_token_cache.bin`).
+Auth is pluggable. ``OsduConfig.auth_provider`` (env var ``AUTH_PROVIDER``) selects which CSP provider to use.
 
-| Mode                  | When to use            | Required config                            |
-|-----------------------|------------------------|--------------------------------------------|
-| `interactive`         | Local dev / tests      | `client_id`, `authority`, `scopes`         |
-| `device_flow`         | Headless ops scripts   | `client_id`, `authority`, `scopes`         |
-| `client_credentials`  | CI, service-to-service | + `client_secret`                          |
+| Provider          | Status      | Required config                                           |
+|-------------------|-------------|-----------------------------------------------------------|
+| ``azure_msal``    | built-in    | ``CLIENT_ID``, ``AUTHORITY``, ``SCOPES``, ``AUTH_MODE``   |
+| ``aws_cognito``   | stub        | bring your own ``TokenProvider`` (see below)              |
+| ``gcp_iam``       | stub        | bring your own ``TokenProvider``                          |
+| ``ibm_iam``       | stub        | bring your own ``TokenProvider``                          |
+
+**Azure (default).** ``AzureMsalConfig.auth_mode`` (env var ``AUTH_MODE``) selects the MSAL flow. All three persist tokens to ``msal_cache_path`` (default ``.msal_token_cache.bin``).
+
+| MSAL flow              | When to use            | Required config                       |
+|------------------------|------------------------|---------------------------------------|
+| ``interactive``        | Local dev / tests      | ``client_id``, ``authority``, ``scopes`` |
+| ``device_flow``        | Headless ops scripts   | ``client_id``, ``authority``, ``scopes`` |
+| ``client_credentials`` | CI, service-to-service | + ``client_secret``                   |
 
 ```python
 # Interactive (default)
 osdu = OsduClient()
-
-# Client credentials — set AUTH_MODE=client_credentials and CLIENT_SECRET=... in env, or:
-from osdu_python_client import ClientCredentialsProvider, OsduConfig
-config = OsduConfig(auth_mode="client_credentials", client_secret="…")
-osdu = OsduClient(config=config, token_provider=ClientCredentialsProvider(config))
-
-# Bring your own provider — anything with .get_token(force_refresh: bool) -> str works
-class MyProvider:
-    def get_token(self, force_refresh: bool = False) -> str:
-        return "…"
-
-osdu = OsduClient(token_provider=MyProvider())
 ```
 
-Tokens are injected per-request, so refresh after a 401 takes effect immediately. The transport retries 401 once with `force_refresh=True` and retries `429/502/503/504` with backoff honouring `Retry-After`.
+**Bring your own provider — any CSP.** Implement the ``TokenProvider`` Protocol (one method) and pass it to ``OsduClient``. Works for AWS, GCP, IBM, custom auth, or anything else:
+
+```python
+class MyAwsProvider:
+    def get_token(self, force_refresh: bool = False) -> str:
+        # Cognito / IAM / whatever — return a bearer token string
+        return "..."
+
+osdu = OsduClient(token_provider=MyAwsProvider())
+```
+
+For shared provider implementations, register them into the registry so users can select via ``AUTH_PROVIDER=...``:
+
+```python
+from osdu_python_client.auth import register_provider
+register_provider("my_csp", lambda config: MyAwsProvider())
+```
+
+Tokens are injected per-request, so refresh after a 401 takes effect immediately. The transport retries 401 once with ``force_refresh=True`` and retries ``429/502/503/504`` with backoff honouring ``Retry-After``.
 
 ### Debugging
 

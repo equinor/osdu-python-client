@@ -1,19 +1,64 @@
+"""Azure / Entra ID token providers backed by MSAL."""
+
 from __future__ import annotations
 
 import logging
 import pathlib
 import threading
-from typing import Any, Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Any, Literal
 
-from osdu_python_client.config import OsduConfig
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from osdu_python_client.auth._base import (
+    TokenProvider,
+    register_provider,
+)
 from osdu_python_client.errors import OsduAuthError, OsduConfigError
+
+if TYPE_CHECKING:
+    from osdu_python_client.config import OsduConfig
 
 log = logging.getLogger(__name__)
 
+AzureAuthMode = Literal["interactive", "device_flow", "client_credentials"]
 
-@runtime_checkable
-class TokenProvider(Protocol):
-    def get_token(self, force_refresh: bool = False) -> str: ...
+# MSAL adds these implicitly and rejects them in caller-supplied scope lists.
+_MSAL_RESERVED_SCOPES: frozenset[str] = frozenset(
+    {"openid", "profile", "offline_access"}
+)
+
+
+class AzureMsalConfig(BaseSettings):
+    """Azure-specific auth settings, loaded from the same ``.env`` as OsduConfig.
+
+    The env var names (``AUTHORITY``, ``SCOPES``, ``CLIENT_ID``, ``CLIENT_SECRET``,
+    ``AUTH_MODE``, ``MSAL_CACHE_PATH``) are unchanged from the pre-split layout.
+    """
+
+    authority: str
+    scopes: str
+    client_id: str
+    client_secret: str | None = None
+    auth_mode: AzureAuthMode = "interactive"
+    msal_cache_path: str = ".msal_token_cache.bin"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
+
+    @property
+    def scopes_list(self) -> list[str]:
+        raw = self.scopes.split()
+        filtered = [s for s in raw if s.lower() not in _MSAL_RESERVED_SCOPES]
+        dropped = [s for s in raw if s.lower() in _MSAL_RESERVED_SCOPES]
+        if dropped:
+            log.debug(
+                "ignoring MSAL-reserved scopes from config: %s (MSAL adds these itself)",
+                dropped,
+            )
+        return filtered
 
 
 def _load_cache(path: pathlib.Path) -> Any:
@@ -31,7 +76,7 @@ def _save_cache(cache: Any, path: pathlib.Path) -> None:
 
 
 class _MsalProviderBase:
-    def __init__(self, config: OsduConfig) -> None:
+    def __init__(self, config: AzureMsalConfig) -> None:
         self._config = config
         self._lock = threading.Lock()
         self._cache_path = pathlib.Path(config.msal_cache_path)
@@ -89,7 +134,7 @@ class MsalInteractiveProvider(_MsalProviderBase):
 class MsalDeviceFlowProvider(_MsalProviderBase):
     def __init__(
         self,
-        config: OsduConfig,
+        config: AzureMsalConfig,
         prompt_callback: Any | None = None,
     ) -> None:
         super().__init__(config)
@@ -122,7 +167,7 @@ class MsalDeviceFlowProvider(_MsalProviderBase):
 
 
 class ClientCredentialsProvider(_MsalProviderBase):
-    def __init__(self, config: OsduConfig) -> None:
+    def __init__(self, config: AzureMsalConfig) -> None:
         if not config.client_secret:
             raise OsduConfigError(
                 "client_secret is required for client_credentials auth_mode"
@@ -157,11 +202,15 @@ class ClientCredentialsProvider(_MsalProviderBase):
             return self._extract_token(result)
 
 
-def provider_for(config: OsduConfig) -> TokenProvider:
-    match config.auth_mode:
+def _factory(_config: "OsduConfig") -> TokenProvider:
+    azure_config = AzureMsalConfig()
+    match azure_config.auth_mode:
         case "interactive":
-            return MsalInteractiveProvider(config)
+            return MsalInteractiveProvider(azure_config)
         case "device_flow":
-            return MsalDeviceFlowProvider(config)
+            return MsalDeviceFlowProvider(azure_config)
         case "client_credentials":
-            return ClientCredentialsProvider(config)
+            return ClientCredentialsProvider(azure_config)
+
+
+register_provider("azure_msal", _factory)

@@ -14,10 +14,6 @@ from osdu_python_client.services.facade import Endpoint, ServiceFacade, _unwrap
 def _env(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("SERVER", "https://example.invalid")
     monkeypatch.setenv("DATA_PARTITION_ID", "test-partition")
-    monkeypatch.setenv("AUTHORITY", "https://login.example/tenant")
-    monkeypatch.setenv("SCOPES", "scope/.default")
-    monkeypatch.setenv("CLIENT_ID", "client-id")
-    monkeypatch.setenv("AUTH_MODE", "interactive")
     monkeypatch.delenv("OSDU_MSAL_CACHE_PATH", raising=False)
 
 
@@ -230,18 +226,22 @@ def test_partition_header_is_default_injected():
 
 
 def test_scopes_list_strips_msal_reserved_scopes(monkeypatch: pytest.MonkeyPatch):
-    from osdu_python_client.config import OsduConfig
+    from osdu_python_client.auth.azure import AzureMsalConfig
 
+    monkeypatch.setenv("AUTHORITY", "https://login.example/t")
+    monkeypatch.setenv("CLIENT_ID", "c")
     monkeypatch.setenv("SCOPES", "https://energy.azure.com/.default openid profile offline_access")
-    cfg = OsduConfig()
+    cfg = AzureMsalConfig()
     assert cfg.scopes_list == ["https://energy.azure.com/.default"]
 
 
 def test_scopes_list_preserves_non_reserved_scopes(monkeypatch: pytest.MonkeyPatch):
-    from osdu_python_client.config import OsduConfig
+    from osdu_python_client.auth.azure import AzureMsalConfig
 
+    monkeypatch.setenv("AUTHORITY", "https://login.example/t")
+    monkeypatch.setenv("CLIENT_ID", "c")
     monkeypatch.setenv("SCOPES", "api://app/.default User.Read")
-    cfg = OsduConfig()
+    cfg = AzureMsalConfig()
     assert cfg.scopes_list == ["api://app/.default", "User.Read"]
 
 
@@ -256,6 +256,55 @@ def test_endpoint_overrides_replace_default_endpoint():
         )
     finally:
         osdu.close()
+
+
+def test_auth_registry_lists_builtin_providers():
+    from osdu_python_client.auth import registered_providers
+
+    builtins = registered_providers()
+    assert "azure_msal" in builtins
+    assert "aws_cognito" in builtins
+    assert "gcp_iam" in builtins
+    assert "ibm_iam" in builtins
+
+
+def test_provider_for_unknown_raises():
+    from osdu_python_client import OsduConfig
+    from osdu_python_client.auth import provider_for
+    from osdu_python_client.errors import OsduConfigError
+
+    config = OsduConfig(auth_provider="does_not_exist")
+    with pytest.raises(OsduConfigError, match="not registered"):
+        provider_for(config)
+
+
+def test_stub_providers_raise_not_implemented():
+    from osdu_python_client import OsduConfig
+    from osdu_python_client.auth import provider_for
+
+    for name in ("aws_cognito", "gcp_iam", "ibm_iam"):
+        config = OsduConfig(auth_provider=name)
+        with pytest.raises(NotImplementedError, match=name):
+            provider_for(config)
+
+
+def test_register_provider_dispatches_via_provider_for():
+    from osdu_python_client import OsduConfig
+    from osdu_python_client.auth import provider_for, register_provider
+
+    class _Stub:
+        def get_token(self, force_refresh: bool = False) -> str:
+            return "from-stub"
+
+    register_provider("test_stub", lambda _cfg: _Stub())
+    try:
+        config = OsduConfig(auth_provider="test_stub")
+        provider = provider_for(config)
+        assert provider.get_token() == "from-stub"
+    finally:
+        # leave the registry as we found it
+        from osdu_python_client.auth._base import _REGISTRY
+        _REGISTRY.pop("test_stub", None)
 
 
 async def test_async_with_headers_scoped():

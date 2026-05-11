@@ -1,3 +1,4 @@
+import logging
 from typing import Literal
 
 from pydantic import Field
@@ -6,6 +7,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 from osdu_python_client.services.registry import SERVICE_BY_ATTR
 
 AuthMode = Literal["interactive", "device_flow", "client_credentials"]
+
+# MSAL adds these automatically and rejects them in caller-supplied scope
+# lists. Filter them so configs copied from other tools (e.g. osdu-cli) just
+# work.
+_MSAL_RESERVED_SCOPES: frozenset[str] = frozenset(
+    {"openid", "profile", "offline_access"}
+)
+
+log = logging.getLogger(__name__)
 
 
 class OsduConfig(BaseSettings):
@@ -48,4 +58,12 @@ class OsduConfig(BaseSettings):
 
     @property
     def scopes_list(self) -> list[str]:
-        return self.scopes.split()
+        raw = self.scopes.split()
+        filtered = [s for s in raw if s.lower() not in _MSAL_RESERVED_SCOPES]
+        dropped = [s for s in raw if s.lower() in _MSAL_RESERVED_SCOPES]
+        if dropped:
+            log.debug(
+                "ignoring MSAL-reserved scopes from config: %s (MSAL adds these itself)",
+                dropped,
+            )
+        return filtered

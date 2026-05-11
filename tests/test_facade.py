@@ -229,6 +229,22 @@ def test_partition_header_is_default_injected():
     assert seen == ["test-partition"]
 
 
+def test_scopes_list_strips_msal_reserved_scopes(monkeypatch: pytest.MonkeyPatch):
+    from osdu_python_client.config import OsduConfig
+
+    monkeypatch.setenv("SCOPES", "https://energy.azure.com/.default openid profile offline_access")
+    cfg = OsduConfig()
+    assert cfg.scopes_list == ["https://energy.azure.com/.default"]
+
+
+def test_scopes_list_preserves_non_reserved_scopes(monkeypatch: pytest.MonkeyPatch):
+    from osdu_python_client.config import OsduConfig
+
+    monkeypatch.setenv("SCOPES", "api://app/.default User.Read")
+    cfg = OsduConfig()
+    assert cfg.scopes_list == ["api://app/.default", "User.Read"]
+
+
 def test_endpoint_overrides_replace_default_endpoint():
     from osdu_python_client import OsduClient, OsduConfig
 

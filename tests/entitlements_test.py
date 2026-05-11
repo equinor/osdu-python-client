@@ -1,37 +1,31 @@
+import logging
 import os
+
 import pytest
 
-from osdu_python_client.generated.entitlements.api.list_group_on_behalf_of_api import (
-    list_all_partition_groups,
-)
-from osdu_python_client.generated.entitlements.client import AuthenticatedClient
-from tests.config import CoreConfig
+from osdu_python_client import OsduClient, enable_debug_logging
 
 
-@pytest.fixture(scope="session")
-def entitlements_client(config: CoreConfig, access_token: str) -> AuthenticatedClient:
-    return AuthenticatedClient(base_url=config.entitlements_url, token=access_token)
+@pytest.fixture(autouse=True)
+def _debug_logging(caplog: pytest.LogCaptureFixture):
+    enable_debug_logging(include_bodies=True)
+    caplog.set_level(logging.DEBUG, logger="osdu_python_client")
 
-def test_list_all_entitlement_groups(
-        config: CoreConfig, entitlements_client: AuthenticatedClient
-):
-    group_type = os.getenv("OSDU_GROUP_TYPE", "NONE")
 
-    # sync_detailed returns a Response object wrapper
-    result = list_all_partition_groups.sync_detailed(
-        client=entitlements_client,
-        data_partition_id=config.data_partition_id,
+def test_list_my_entitlement_groups(osdu: OsduClient):
+    member_email = os.environ["OSDU_MEMBER_EMAIL"]
+    group_type = os.getenv("OSDU_GROUP_TYPE", "none")
+    print(f"member_email: {member_email!r}")
+    print(f"group_type: {group_type!r}")
+    print(f"entitlements URL: {osdu.entitlements.get_httpx_client().base_url}")
+
+    dto = osdu.entitlements.list_groups_on_behalf_of(
+        member_email=member_email,
         type_=group_type,
     )
 
-    assert result is not None
-    assert result.status_code.value == 200
-
-    # The generated client parses the JSON for you into 'parsed'
-    dto = result.parsed
     assert dto is not None
-
-    # Access the groups property on the DTO directly
     assert hasattr(dto, "groups")
+    print(f"\nGroups for {member_email}:")
     for group in dto.groups:
-        print(group.name + " - " + group.email)
+        print(f"  {group.name} - {group.email}")

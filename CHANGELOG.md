@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.4](https://github.com/equinor/osdu-python-client/compare/v0.3.3...v0.3.4) (2026-05-12)
+
+
+### Dependencies
+
+* bump `equinor/ops-actions` from 9.37.2 to 9.37.3 ([#36](https://github.com/equinor/osdu-python-client/issues/36)) ([a6f868f](https://github.com/equinor/osdu-python-client/commit/a6f868fcf4f020bf3778dadedff90ecd44df64c4))
+* bump `urllib3` from 2.6.3 to 2.7.0 ([#38](https://github.com/equinor/osdu-python-client/issues/38)) ([83aac39](https://github.com/equinor/osdu-python-client/commit/83aac399eb7ee905f0b3a8235c0bc182f0fe8b7e))
+
 ## [0.3.3](https://github.com/equinor/osdu-python-client/compare/v0.3.2...v0.3.3) (2026-05-04)
 
 

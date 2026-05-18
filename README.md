@@ -1,5 +1,15 @@
 # OSDU Python Client
 
+> [!CAUTION]
+> This repository has been archived.
+>
+> Reason: This project is no longer active in this location and has been migrated to the OSDU-managed repository.
+>
+> Active repository:
+> https://community.opengroup.org/osdu/platform/system/sdks/osdu-python-client
+>
+> This repository is archived in accordance with Equinor's SCM Policy. No further development or maintenance will take place here. The code remains available in read-only mode for reference purposes.
+
 [![SCM Compliance](https://scm-compliance-api.radix.equinor.com/repos/equinor/060070c2-8a92-457a-bf34-8c625391b777/badge)](https://developer.equinor.com/governance/scm-policy/)
 
 This project is a Python client for [OSDU](https://osduforum.org/) services, automatically generated from OpenAPI specifications using [openapi-python-client](https://github.com/openapi-generators/openapi-python-client).
